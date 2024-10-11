@@ -1,0 +1,69 @@
+---
+title: "Chick Feed Analysis"
+author: "Rachael Kawira"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Chick Feed Analysis
+#####This Analysis shows how different chicks' weight increased over time and what feed they were using.
+#####The data set is one of the already existent datasets on R. An overview of the dataset was done to understand the structure of the data.
+
+
+```{r chick}
+datasets::ChickWeight -> chicken
+summary(chicken)
+colnames(chicken)
+colSums(is.na(chicken))
+boxplot(chicken)
+```
+
+### Check whether there is is significant difference in chick weight based on the diet. According to this data there is significant difference between the weights based on the diet
+
+```{r anova, echo=FALSE}
+anova_result <- aov(weight~Diet,data=chicken)
+summary(anova_result)
+```
+
+### Check whether the chick weight changes over time maintaining all the other factors and in this case it does
+
+```{r linear, echo=FALSE}
+lm(weight ~ Time, data = chicken)
+```
+### Plot that on a graph to show what it looks like
+
+```{r graph1, echo=FALSE}
+install.packages("ggplot2")
+library(ggplot2)
+ggplot(chicken, aes(x = Time, y = weight)) +
+  geom_point(color = "blue") +  # Scatter plot with blue points
+  geom_smooth(method = "lm", color = "red", se = FALSE) +  # Adds a red linear regression line without confidence intervals
+  labs(title = "Weight vs Time", x = "Time", y = "Weight") +  # Labels for the plot
+  theme_minimal()
+```
+### Proceed to look if there is an effect of time on weight for each diet. With the base diet being diet1, when the time increases by 1 unit chicks on diet 1 increase by 8.75 units, those on diet 2 weigh 16.17 units more than those on diet 1, those on diet3 weigh 26.5 units more than diet 1 and those on diet4 weigh 30.23 more than those on diet1.
+
+```{r linear2, echo=FALSE}
+lm(weight ~ Time + Diet, data = chicken)
+```
+### Check whether there is differences in weight gain over time between individual chicks.
+```{r mixed, echo=FALSE}
+install.packages("lme4")
+library("lme4")
+lmer(weight ~ Time + (1 | Chick), data = chicken)
+```
+
+### Check whether there is correlation between chick weight and time and to ensure there is no multicolinearity.
+
+```{r corr, echo=FALSE}
+cor.test(chicken$weight,chicken$Time)
+```
+### Finally observe the weight distribution for each diet.
+
+```{r mean, echo=FALSE}
+aggregate(weight ~ Diet, data=chicken, summary)
+```
